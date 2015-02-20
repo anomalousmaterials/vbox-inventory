@@ -35,8 +35,8 @@ def get_hostvars(vmname):
     '''Gets data for an individual VM and returns it as a dictionary.
     
     The primary (currently only) dynamic item is ansible_ssh_host, which is obtained
-    from VirtualBox's first IPv4 interface entry. Modify HOSTVARS_TEMPLATE to add
-    static host vars.
+    from VirtualBox's first interface entry. Modify HOSTVARS_TEMPLATE to add static
+    host vars.
     '''
     hostvars = copy(HOSTVAR_TEMPLATE)
     cmd = Popen(['VboxManage', 'guestproperty', 'get', vmname,

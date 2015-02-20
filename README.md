@@ -3,7 +3,7 @@ A dynamic inventory script for Ansible and VirtualBox.
 
 What it does
 ------------
-Lets you run Ansible against virtual machines running in VirtualBox without having to check addresses and manually maintain the Ansible hosts file.
+Lets you run Ansible against virtual machines without having to check addresses or maintain the Ansible hosts file.
 
 How it works
 ------------
@@ -34,6 +34,8 @@ Here's one way to set up a combination of static and dynamic inventories:
 Limitations
 -----------
 * Gets the address of the first interface, multihomed hosts may not work as expected.
+* Only running VMs are listed.
+* Guest additions need to be installed.
 
 Customizing
 -----------
