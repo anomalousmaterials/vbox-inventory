@@ -10,10 +10,11 @@ Caveats:
  * Guest additions need to be installed
 
 Reading:
-    http://docs.ansible.com/intro_inventory.html
-    http://docs.ansible.com/developing_inventory.html
+ * http://docs.ansible.com/intro_inventory.html
+ * http://docs.ansible.com/developing_inventory.html
 '''
 import json
+import sys
 from copy import copy
 from subprocess import Popen, PIPE
 from argparse import ArgumentParser
@@ -22,19 +23,20 @@ HOSTVAR_TEMPLATE = {}
 VBOX_GROUP = 'vbox'
 
 def get_running_vm_names():
-    '''Returns and iterable of VM name strings'''
+    '''Returns an iterable of VM name strings'''
     vmlist = Popen(['VBoxManage', 'list', 'runningvms'], stdout=PIPE, stderr=PIPE)
     sout, serr = vmlist.communicate()
     if serr != '' or vmlist.returncode != 0:
-        raise UserWarning('VBoxManage error: %s' % serr)
+        raise UserWarning(serr)
     for line in sout.splitlines():
         yield line.split()[0].strip('"')
         
 def get_hostvars(vmname):
-    '''Gets the host data and returns it as a dictionary.
+    '''Gets data for an individual VM and returns it as a dictionary.
     
-    The primary (currently only) item is ansible_ssh_host, which is obtained
-    from VirtualBox's first IPv4 interface entry.
+    The primary (currently only) dynamic item is ansible_ssh_host, which is obtained
+    from VirtualBox's first IPv4 interface entry. Modify HOSTVARS_TEMPLATE to add
+    static host vars.
     '''
     hostvars = copy(HOSTVAR_TEMPLATE)
     cmd = Popen(['VboxManage', 'guestproperty', 'get', vmname,
@@ -56,18 +58,26 @@ def vm_list_as_json():
     return json.dumps({VBOX_GROUP: hostlist, '_meta': {'hostvars': hostvars}})
 
 def main():
-    '''Command line parsing'''
+    '''Command line parsing
+
+    The --list option is used by Ansible to fetch the host list; We include host
+    data in the host list, but also support fetching it individually with --host.
+    '''
     parser = ArgumentParser(usage='%(prog)s --list')
     parser.add_argument('--list', action='store_true', default=False,
                         help='return VM list with host data')
     parser.add_argument('--host', dest='vmname', help='return host data')
     args = parser.parse_args()
-    if args.list:
-        print vm_list_as_json()
-    elif args.vmname is not None:
-        print json.dumps(get_hostvars(args.vmname))
-    else:
-        parser.print_help()
+    try:
+        if args.list:
+            print vm_list_as_json()
+        elif args.vmname is not None:
+            print json.dumps(get_hostvars(args.vmname))
+        else:
+            parser.print_help()
+    except UserWarning, exc:
+        sys.stderr.write(exc.message)
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
