@@ -39,7 +39,7 @@ def get_hostvars(vmname):
     host vars.
     '''
     hostvars = copy(HOSTVAR_TEMPLATE)
-    cmd = Popen(['VboxManage', 'guestproperty', 'get', vmname,
+    cmd = Popen(['VBoxManage', 'guestproperty', 'get', vmname,
                  '/VirtualBox/GuestInfo/Net/0/V4/IP'], stdout=PIPE, stderr=PIPE)
     sout, serr = cmd.communicate()
     if serr != '' or cmd.returncode != 0:
